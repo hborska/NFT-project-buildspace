@@ -18,6 +18,8 @@ contract MyEpicNFT is ERC721URIStorage {
   string[] secondWords = ["Cool", "Brave", "Stupid", "Happy", "Sad", "Bored"];
   string[] thirdWords = ["Address", "Waiter", "Suburb", "Miserable", "Electron", "Carrot"];
 
+  event NewEpicNFTMinted(address sender, uint256 tokenId);
+
   constructor() ERC721 ("SquareNFT", "SQUARE") {
     console.log("This is my NFT contract. Let's gooo!");
   }
@@ -87,5 +89,8 @@ contract MyEpicNFT is ERC721URIStorage {
   
     _tokenIds.increment();
     console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
+
+    //Emitting the event, so user can use the token ID to (instantly) get their OpenSea/Rarible link
+    emit NewEpicNFTMinted(msg.sender, newItemId);
   }
 }

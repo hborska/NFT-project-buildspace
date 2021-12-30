@@ -4,7 +4,7 @@ import twitterLogo from './assets/twitter-logo.svg';
 import { ethers } from 'ethers';
 //Importing ABI config file
 import myEpicNft from './utils/MyEpicNFT.json';
-require('dotenv').config();
+// require('dotenv').config();
 
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -68,7 +68,8 @@ const App = () => {
   //This is where the magic is -- where our frontend actually calls the contract
   const askContractToMintNft = async () => {
     const CONTRACT_ADDRESS =
-      process.env.REAACT_APP_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
+      process.env.REACT_APP_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
+    // console.log('Contract Address: ' + CONTRACT_ADDRESS);
 
     try {
       const { ethereum } = window;
