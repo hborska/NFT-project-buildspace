@@ -18,6 +18,8 @@ contract MyEpicNFT is ERC721URIStorage {
   string[] secondWords = ["Cool", "Brave", "Stupid", "Happy", "Sad", "Bored"];
   string[] thirdWords = ["Address", "Waiter", "Suburb", "Miserable", "Electron", "Carrot"];
 
+  uint mintCount = 0;
+
   event NewEpicNFTMinted(address sender, uint256 tokenId);
 
   constructor() ERC721 ("SquareNFT", "SQUARE") {
@@ -82,6 +84,9 @@ contract MyEpicNFT is ERC721URIStorage {
     console.log(finalTokenUri);
     console.log("--------------------\n");
 
+    //Increment amount of NFTs minted by 1
+    mintCount += 1;
+    
     _safeMint(msg.sender, newItemId);
     
     // Update your URI!!!
@@ -92,5 +97,10 @@ contract MyEpicNFT is ERC721URIStorage {
 
     //Emitting the event, so user can use the token ID to (instantly) get their OpenSea/Rarible link
     emit NewEpicNFTMinted(msg.sender, newItemId);
+  }
+
+  //Returning the total amount of NFTs minted so far
+  function getTotalMintedNFTs() public view returns (uint) {
+    return mintCount;
   }
 }
