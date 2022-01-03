@@ -49,6 +49,9 @@ contract MyEpicNFT is ERC721URIStorage {
   }
 
   function makeAnEpicNFT() public {
+    //Setting the max number of NFTs minted to be 100
+    require(mintCount < 100);
+
     uint256 newItemId = _tokenIds.current();
 
     string memory first = pickRandomFirstWord(newItemId);
@@ -86,7 +89,7 @@ contract MyEpicNFT is ERC721URIStorage {
 
     //Increment amount of NFTs minted by 1
     mintCount += 1;
-    
+
     _safeMint(msg.sender, newItemId);
     
     // Update your URI!!!

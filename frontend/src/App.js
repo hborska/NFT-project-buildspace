@@ -12,6 +12,7 @@ const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const PERSONAL_TWITTER_HANDLE = '@Henry89421';
 const PERSONAL_TWITTER_LINK = `https://twitter.com/${PERSONAL_TWITTER_HANDLE}`;
+const MAX_MINT_AMOUNT = 100; //Max amount of NFTs that can be minted in the collection
 
 // I moved the contract address to the top for easy access.
 const CONTRACT_ADDRESS =
@@ -56,46 +57,6 @@ const App = () => {
       console.log('No authorized account found');
     }
   };
-
-  //Making sure wallet is connected
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
-
-  //Setting the Rarible collection link
-  useEffect(() => {
-    setRaribleLink(
-      `https://rinkeby.rarible.com/collection/${CONTRACT_ADDRESS}/items`
-    );
-  }, []);
-
-  //Setting the initial current mint count
-  useEffect(() => {
-    async function setInitialMintCount() {
-      try {
-        const { ethereum } = window;
-
-        if (ethereum) {
-          const provider = new ethers.providers.Web3Provider(ethereum);
-          const signer = provider.getSigner();
-          const connectedContract = new ethers.Contract(
-            CONTRACT_ADDRESS,
-            myEpicNft.abi,
-            signer
-          );
-
-          let newMintCount = await connectedContract.getTotalMintedNFTs();
-          setCurrentMintCount(newMintCount.toNumber());
-          console.log('Successfully set the current mint count!');
-        } else {
-          console.log("Ethereum object doesn't exist!");
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    setInitialMintCount();
-  }, []);
 
   const renderNotConnectedContainer = () => (
     <button
@@ -167,35 +128,41 @@ const App = () => {
   };
 
   const askContractToMintNft = async () => {
-    try {
-      const { ethereum } = window;
+    if (currentMintCount < MAX_MINT_AMOUNT) {
+      try {
+        const { ethereum } = window;
 
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const connectedContract = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          myEpicNft.abi,
-          signer
-        );
+        if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = provider.getSigner();
+          const connectedContract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            myEpicNft.abi,
+            signer
+          );
 
-        console.log('Going to pop wallet now to pay gas...');
-        let nftTxn = await connectedContract.makeAnEpicNFT();
+          console.log('Going to pop wallet now to pay gas...');
+          let nftTxn = await connectedContract.makeAnEpicNFT();
+          setMiningTransaction(true);
 
-        console.log('Mining...please wait.');
-        await nftTxn.wait();
-        console.log(nftTxn);
-        console.log(
-          `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
-        );
+          console.log('Mining...please wait.');
+          await nftTxn.wait();
+          console.log(nftTxn);
+          console.log(
+            `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
+          );
+          setMiningTransaction(false);
 
-        let newMintCount = await connectedContract.getTotalMintedNFTs();
-        setCurrentMintCount(newMintCount.toNumber());
-      } else {
-        console.log("Ethereum object doesn't exist!");
+          let newMintCount = await connectedContract.getTotalMintedNFTs();
+          setCurrentMintCount(newMintCount.toNumber());
+        } else {
+          console.log("Ethereum object doesn't exist!");
+        }
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
+    } else {
+      alert('All of the NFTs in this collection have been minted already!');
     }
   };
 
@@ -207,6 +174,46 @@ const App = () => {
       Mint a New NFT
     </button>
   );
+
+  //Making sure wallet is connected and setting initial collection link
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []);
+
+  //Setting the Rarible collection link
+  useEffect(() => {
+    setCollectionLink(
+      `https://rinkeby.rarible.com/collection/${CONTRACT_ADDRESS}/items`
+    );
+  }, []);
+
+  //Setting the initial current mint count
+  useEffect(() => {
+    async function setInitialMintCount() {
+      try {
+        const { ethereum } = window;
+
+        if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = provider.getSigner();
+          const connectedContract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            myEpicNft.abi,
+            signer
+          );
+
+          let newMintCount = await connectedContract.getTotalMintedNFTs();
+          setCurrentMintCount(newMintCount.toNumber());
+          console.log('Successfully set the current mint count!');
+        } else {
+          console.log("Ethereum object doesn't exist!");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    setInitialMintCount();
+  }, []);
 
   return (
     <div className='App'>
@@ -224,23 +231,25 @@ const App = () => {
             ? renderNotConnectedContainer()
             : renderMintUI()}
           {raribleLink !== '' && (
-            <div>
-              <a href={raribleLink} target='_blank'>
-                <button className='cta-button connect-wallet-button rarible-button'>
-                  See your <i>new NFT </i>on Rarible
-                </button>
-              </a>
-            </div>
-          )}
-          {/* {collectionLink && ( */}
-          <div>
-            <a href={raribleLink} target='_blank'>
+            <a href={raribleLink} target='_blank' rel='noreferrer'>
               <button className='cta-button connect-wallet-button rarible-button'>
-                View the Full Collection on Rarible!
+                See your <i>new NFT </i>on Rarible
               </button>
             </a>
-          </div>
-          {/* )} */}
+          )}
+          {collectionLink !== '' && (
+            <a href={raribleLink} target='_blank' rel='noreferrer'>
+              <button className='cta-button connect-wallet-button rarible-button'>
+                View the Full Collection on Rarible
+              </button>
+            </a>
+          )}
+          {miningTransaction && (
+            <div>
+              <p className='sub-text'>Minting a New NFT...</p>
+              <Loader type='Puff' color='white' height={120} width={120} />
+            </div>
+          )}
         </div>
 
         <div className='footer-container'>
