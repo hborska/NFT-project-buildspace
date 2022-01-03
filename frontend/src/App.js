@@ -175,7 +175,7 @@ const App = () => {
   //Making sure wallet is connected and setting initial collection link
   useEffect(() => {
     checkIfWalletIsConnected();
-  }, []);
+  });
 
   //Setting the Rarible collection link
   useEffect(() => {
