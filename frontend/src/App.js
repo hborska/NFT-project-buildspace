@@ -14,9 +14,7 @@ const PERSONAL_TWITTER_HANDLE = '@Henry89421';
 const PERSONAL_TWITTER_LINK = `https://twitter.com/${PERSONAL_TWITTER_HANDLE}`;
 const MAX_MINT_AMOUNT = 100; //Max amount of NFTs that can be minted in the collection
 
-// I moved the contract address to the top for easy access.
-const CONTRACT_ADDRESS =
-  process.env.REACT_APP_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState('');
@@ -110,11 +108,11 @@ const App = () => {
         //This will "capture" our event when our contract throws it (very similar to webhooks)
         connectedContract.on('NewEpicNFTMinted', (from, tokenId) => {
           console.log(from, tokenId.toNumber());
+          alert(
+            `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on Rarible. Here's the link: https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
+          );
           setRaribleLink(
             `https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}:${tokenId.toNumber()}`
-          );
-          alert(
-            `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://rinkeby.rarible.com/token/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
           );
         });
 
@@ -144,15 +142,14 @@ const App = () => {
           console.log('Going to pop wallet now to pay gas...');
           let nftTxn = await connectedContract.makeAnEpicNFT();
           setMiningTransaction(true);
-
           console.log('Mining...please wait.');
           await nftTxn.wait();
+          setMiningTransaction(false);
+
           console.log(nftTxn);
           console.log(
             `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
           );
-          setMiningTransaction(false);
-
           let newMintCount = await connectedContract.getTotalMintedNFTs();
           setCurrentMintCount(newMintCount.toNumber());
         } else {
@@ -220,7 +217,14 @@ const App = () => {
       <div className='container'>
         <div className='header-container'>
           <p className='header gradient-text'>My NFT Collection</p>
-          <p className='sub-text'>A unique collection of 100 epic NFTs.</p>
+          <p
+            className='sub-text'
+            style={{ marginLeft: '5%', marginRight: '5%' }}
+          >
+            A unique collection of 100 epic NFTs. Each is dynamically created
+            and stored on-chain, consisting of a combination of 3 randomly
+            generated words. Checkout the collection on Rarible!
+          </p>
           <p className='sub-text'>
             <strong>{currentMintCount} / 100 NFTs minted so far</strong>
           </p>
@@ -233,12 +237,12 @@ const App = () => {
           {raribleLink !== '' && (
             <a href={raribleLink} target='_blank' rel='noreferrer'>
               <button className='cta-button connect-wallet-button rarible-button'>
-                See your <i>new NFT </i>on Rarible
+                See your New NFT on Rarible
               </button>
             </a>
           )}
           {collectionLink !== '' && (
-            <a href={raribleLink} target='_blank' rel='noreferrer'>
+            <a href={collectionLink} target='_blank' rel='noreferrer'>
               <button className='cta-button connect-wallet-button rarible-button'>
                 View the Full Collection on Rarible
               </button>
@@ -250,6 +254,7 @@ const App = () => {
               <Loader type='Puff' color='white' height={120} width={120} />
             </div>
           )}
+          {!miningTransaction && <div></div>}
         </div>
 
         <div className='footer-container'>
